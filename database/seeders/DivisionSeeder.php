@@ -2,23 +2,22 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Division;
+use Illuminate\Database\Seeder;
 
 class DivisionSeeder extends Seeder
 {
     public function run()
     {
         $divisions = [
-            'IT Development',
-            'Marketing',
-            'Finance',
-            'Human Resources',
-            'Operations'
+            ['name' => 'IT'],
+            ['name' => 'Marketing'],
+            ['name' => 'Finance'],
+            ['name' => 'HR'],
         ];
 
         foreach ($divisions as $division) {
-            Division::create(['name' => $division]);
+            Division::create($division);
         }
     }
 }

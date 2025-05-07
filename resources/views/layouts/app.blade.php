@@ -24,9 +24,7 @@
                                 <a href="{{ route('projects.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
                                     Projects
                                 </a>
-                            @endif
-                            @if(auth()->user()->hasRole('manager'))
-                                <a href="{{ route('fuzzy.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+                                <a href="{{ route('projects.fuzzy-analysis') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
                                     Fuzzy Analysis
                                 </a>
                             @endif
@@ -64,5 +62,7 @@
             </div>
         </main>
     </div>
+    <!-- Di bagian bawah sebelum closing body tag -->
+    @stack('scripts')
 </body>
 </html>

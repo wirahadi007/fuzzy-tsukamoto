@@ -3,27 +3,30 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\DashboardController;
 Route::get('/', function () {
     return view('auth.login');
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        $projects = auth()->user()->hasRole('admin') ? \App\Models\Project::with('division')->get() : null;
-        return view('dashboard', compact('projects'));
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware(['auth'])
+        ->name('dashboard');
 
     // Admin Routes
-    Route::middleware([\App\Http\Middleware\CheckRole::class.':admin'])->group(function () {
+    // Route::group(['middleware' => ['auth', 'role:admin']], function () {
+        // Place this before the resource route
+        Route::get('/projects/fuzzy-analysis', [ProjectController::class, 'fuzzyAnalysis'])->name('projects.fuzzy-analysis');
+        
         Route::resource('projects', ProjectController::class);
-    });
+    // });
 
     // Accounting Routes
-    Route::middleware([\App\Http\Middleware\CheckRole::class.':accounting'])->group(function () {
+    Route::group(['middleware' => ['auth', 'role:accounting']], function () {
         Route::get('/project-monitoring', [ProjectController::class, 'monitoring'])->name('projects.monitoring');
     });
 
+    // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
