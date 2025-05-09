@@ -13,19 +13,19 @@
                                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $projects->count() }}</p>
                             </div>
                             <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4">
-                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">Need Overtime</h4>
+                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">Perlu Lembur</h4>
                                 <p class="text-2xl font-bold text-red-600 dark:text-red-400">
                                     {{ $projects->where('processing_time', '>', 50)->count() }}
                                 </p>
                             </div>
                             <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4">
-                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">Normal Schedule</h4>
+                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">Lembur Sedang</h4>
                                 <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                                     {{ $projects->whereBetween('processing_time', [41, 50])->count() }}
                                 </p>
                             </div>
                             <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4">
-                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">On Track</h4>
+                                <h4 class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-2">Tidak Perlu Lembur</h4>
                                 <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                                     {{ $projects->where('processing_time', '<=', 40)->count() }}
                                 </p>
@@ -52,87 +52,74 @@
                         </div>
 
                         @push('scripts')
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                         <script>
-                            // Chart configurations
-                            const chartOptions = {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            padding: 20,
-                                            color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
-                                        }
-                                    }
-                                }
-                            };
-                        
-                            // Overtime Distribution Chart
-                            new Chart(overtimeCtx, {
-                                type: 'pie',
-                                data: {
-                                    labels: ['Perlu Lembur', 'Lembur Sedang', 'Tidak Perlu Lembur'],
-                                    datasets: [{
-                                        data: [
-                                            {{ $projects->filter(function($p) { 
-                                                return $p->processing_time >= 50 && $p->priority_level == 3; 
-                                            })->count() }},
-                                            {{ $projects->filter(function($p) { 
-                                                return $p->processing_time >= 40 && $p->processing_time < 50 && $p->priority_level == 2; 
-                                            })->count() }},
-                                            {{ $projects->filter(function($p) { 
-                                                return $p->processing_time < 40 && $p->priority_level == 1; 
-                                            })->count() }}
-                                        ],
-                                        backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
-                                    }]
-                                },
-                                options: {
-                                    ...chartOptions,
-                                    layout: {
-                                        padding: {
-                                            bottom: 20
-                                        }
-                                    }
-                                }
-                            });
-                        
-                            // Priority Distribution Chart
-                            new Chart(priorityCtx, {
-                                type: 'bar',
-                                data: {
-                                    labels: ['Bisa Didahulukan', 'Normal', 'Penting', 'Super Penting'],
-                                    datasets: [{
-                                        label: 'Jumlah Project',
-                                        data: [
-                                            {{ $projects->filter(function($p) { return $p->priority_scale == 1; })->count() }},
-                                            {{ $projects->filter(function($p) { return $p->priority_scale == 2; })->count() }},
-                                            {{ $projects->filter(function($p) { return $p->priority_scale == 3; })->count() }},
-                                            {{ $projects->filter(function($p) { return $p->priority_scale == 4; })->count() }}
-                                        ],
-                                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#B91C1C']
-                                    }]
-                                },
-                                options: {
-                                    ...chartOptions,
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {
-                                                stepSize: 1,
-                                                color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
-                                            }
-                                        },
-                                        x: {
-                                            ticks: {
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const overtimeCtx = document.getElementById('overtimeChart').getContext('2d');
+                                const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+                            
+                                // Chart configurations
+                                const chartOptions = {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                padding: 20,
                                                 color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
                                             }
                                         }
                                     }
-                                }
-                            });
-                        </script>
+                                };
+                            
+                                // Overtime Distribution Chart
+                                new Chart(overtimeCtx, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: ['Perlu Lembur', 'Lembur Sedang', 'Tidak Perlu Lembur'],
+                                        datasets: [{
+                                            data: [
+                                                {{ $projects->where('processing_time', '>', 50)->count() }},
+                                                {{ $projects->whereBetween('processing_time', [41, 50])->count() }},
+                                                {{ $projects->where('processing_time', '<=', 40)->count() }}
+                                            ],
+                                            backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
+                                        }]
+                                    },
+                                    options: chartOptions
+                                });
+                            
+                                // Priority Distribution Chart
+                                new Chart(priorityCtx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: ['Bisa Didahulukan', 'Normal', 'Penting', 'Super Penting'],
+                                        datasets: [{
+                                            label: 'Jumlah Project',
+                                            data: [
+                                                {{ $projects->where('priority_scale', 1)->count() }},
+                                                {{ $projects->where('priority_scale', 2)->count() }},
+                                                {{ $projects->where('priority_scale', 3)->count() }},
+                                                {{ $projects->where('priority_scale', 4)->count() }}
+                                            ],
+                                            backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#B91C1C']
+                                        }]
+                                    },
+                                    options: {
+                                        ...chartOptions,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    stepSize: 1,
+                                                    color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            </script>
                         @endpush
                         
                         <!-- Existing Project Table -->
@@ -221,60 +208,70 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Get canvas elements
-        const overtimeCtx = document.getElementById('overtimeChart').getContext('2d');
-        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        document.addEventListener('DOMContentLoaded', function() {
+            const overtimeCtx = document.getElementById('overtimeChart').getContext('2d');
+            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
 
-        // Overtime Distribution Chart
-        new Chart(overtimeCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Perlu Lembur', 'Lembur Sedang', 'Tidak Perlu Lembur'],
-                datasets: [{
-                    data: [
-                        {{ $projects->filter(function($p) { 
-                            return $p->processing_time >= 50 && $p->priority_level == 3; 
-                        })->count() }},
-                        {{ $projects->filter(function($p) { 
-                            return $p->processing_time >= 40 && $p->processing_time < 50 && $p->priority_level == 2; 
-                        })->count() }},
-                        {{ $projects->filter(function($p) { 
-                            return $p->processing_time < 40 && $p->priority_level == 1; 
-                        })->count() }}
-                    ],
-                    backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
-                }]
-            },
-            options: chartOptions
-        });
-
-        // Priority Distribution Chart
-        new Chart(priorityCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Bisa Didahulukan', 'Normal', 'Super Penting'],
-                datasets: [{
-                    label: 'Jumlah Project',
-                    data: [
-                        {{ $projects->where('priority_level', 1)->count() }},
-                        {{ $projects->where('priority_level', 2)->count() }},
-                        {{ $projects->where('priority_level', 3)->count() }}
-                    ],
-                    backgroundColor: ['#10B981', '#F59E0B', '#EF4444']
-                }]
-            },
-            options: {
-                ...chartOptions,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
+            // Chart configurations
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
                             color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
                         }
                     }
                 }
-            }
+            };
+
+            // Overtime Distribution Chart
+            new Chart(overtimeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Perlu Lembur', 'Lembur Sedang', 'Tidak Perlu Lembur'],
+                    datasets: [{
+                        data: [
+                            {{ $projects->where('processing_time', '>', 50)->count() }},
+                            {{ $projects->whereBetween('processing_time', [41, 50])->count() }},
+                            {{ $projects->where('processing_time', '<=', 40)->count() }}
+                        ],
+                        backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Priority Distribution Chart
+            new Chart(priorityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Bisa Didahulukan', 'Normal', 'Penting', 'Super Penting'],
+                    datasets: [{
+                        label: 'Jumlah Project',
+                        data: [
+                            {{ $projects->filter(function($p) { return $p->calculated_processing_time > 50; })->count() }},
+                            {{ $projects->filter(function($p) { return $p->calculated_processing_time > 40 && $p->calculated_processing_time <= 50; })->count() }},
+                            {{ $projects->filter(function($p) { return $p->calculated_processing_time <= 40; })->count() }}
+                        ],
+                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#B91C1C']
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: document.querySelector('html').classList.contains('dark') ? '#fff' : '#000'
+                            }
+                        }
+                    }
+                }
+            });
         });
     </script>
 @endpush

@@ -30,14 +30,20 @@ class ProjectController extends Controller
                 'telat'             => 60,
             ];
     
-            // Aturan fuzzy (sesuai proposal)
+            // Definisikan rules sekali saja di sini
             $rules = [
                 ['sedikit', 'rendah', 'bisa_didahulukan', 'selesai_cepat'],
                 ['banyak', 'rendah', 'bisa_didahulukan', 'selesai_cepat'],
                 ['sedang', 'sedang', 'normal', 'sesuai_deadline'],
                 ['sedikit', 'tinggi', 'penting', 'telat'],
-                ['sedikit', 'tinggi', 'super_penting', 'telat'],  // Tambah rule untuk super_penting
-                ['banyak', 'tinggi', 'super_penting', 'telat']
+                ['sedikit', 'tinggi', 'super_penting', 'telat'],
+                ['banyak', 'tinggi', 'super_penting', 'telat'],
+                ['banyak', 'rendah', 'super_penting', 'telat'],
+                ['sedikit', 'tinggi', 'bisa_didahulukan', 'sesuai_deadline'],
+                ['sedang', 'tinggi', 'normal', 'telat'],
+                ['banyak', 'tinggi', 'normal', 'sesuai_deadline'],
+                ['sedang', 'tinggi', 'penting', 'telat'],
+                ['banyak', 'tinggi', 'penting', 'telat']
             ];
     
             $results = [];
@@ -77,7 +83,13 @@ class ProjectController extends Controller
                         ['sedikit', 'tinggi', 'penting', 'telat'],
                         ['sedikit', 'tinggi', 'super_penting', 'telat'],
                         ['banyak', 'tinggi', 'super_penting', 'telat'],
-                        ['banyak', 'rendah', 'super_penting', 'telat']  // Tambah rule untuk kasus banyak karyawan dengan prioritas tinggi
+                        ['banyak', 'rendah', 'super_penting', 'telat'],
+                        // Tambahan rules untuk mencakup kasus working hours tinggi
+                        ['sedikit', 'tinggi', 'bisa_didahulukan', 'sesuai_deadline'],
+                        ['sedang', 'tinggi', 'normal', 'telat'],
+                        ['banyak', 'tinggi', 'normal', 'sesuai_deadline'],
+                        ['sedang', 'tinggi', 'penting', 'telat'],
+                        ['banyak', 'tinggi', 'penting', 'telat']
                     ];
     
                     foreach ($rules as $rule) {
@@ -171,11 +183,11 @@ class ProjectController extends Controller
         ]);
     
         try {
-            $project = Project::create([
-                ...$validated,
-                'processing_time' => 0,
-                'assigned_to' => null
-            ]);
+            $project = Project::create($validated);
+            
+            // Hitung fuzzy dan update processing time
+            $fuzzyResult = $this->calculateFuzzyForProject($project);
+            $project->update(['processing_time' => round($fuzzyResult)]);
             
             return redirect()->route('projects.index')
                 ->with('success', 'Project created successfully.');
@@ -184,18 +196,6 @@ class ProjectController extends Controller
             return back()->withInput()
                 ->with('error', 'Failed to create project. ' . $e->getMessage());
         }
-    }
-
-    public function show(Project $project)
-    {
-        $project->load('division'); // Eager load the division relationship
-        return view('projects.show', compact('project'));
-    }
-
-    public function edit(Project $project)
-    {
-        $divisions = Division::all();
-        return view('projects.edit', compact('project', 'divisions'));
     }
 
     public function update(Request $request, Project $project)
@@ -212,7 +212,93 @@ class ProjectController extends Controller
         ]);
     
         $project->update($validated);
+        
+        // Hitung ulang fuzzy setelah update
+        $fuzzyResult = $this->calculateFuzzyForProject($project);
+        $project->update(['processing_time' => round($fuzzyResult)]);
+        
         return redirect()->route('projects.index')->with('success', 'Project updated successfully');
+    }
+
+    // Tambahkan method baru untuk menghitung fuzzy
+    private function calculateFuzzyForProject($project)
+    {
+        $employeeMembership = [
+            'sedikit' => $this->calculateMembership($project->employee_count, 1, 2, 3),
+            'sedang'  => $this->calculateMembership($project->employee_count, 2, 3, 4),
+            'banyak'  => $this->calculateMembership($project->employee_count, 3, 4, 5),
+        ];
+    
+        $workingHoursMembership = [
+            'rendah' => $this->calculateMembership($project->working_hours, 5, 15, 25),
+            'sedang' => $this->calculateMembership($project->working_hours, 20, 30, 40),
+            'tinggi' => $this->calculateMembership($project->working_hours, 35, 45, 56)
+        ];
+    
+        $priorityMembership = [
+            'bisa_didahulukan' => $this->calculateMembership($project->priority_scale, 0, 1, 2),
+            'normal' => $this->calculateMembership($project->priority_scale, 1, 2, 3),
+            'penting' => $this->calculateMembership($project->priority_scale, 2, 3, 4),
+            'super_penting' => $this->calculateMembership($project->priority_scale, 3, 4, 4)
+        ];
+    
+        $zMapping = [
+            'selesai_cepat'   => 40,
+            'sesuai_deadline' => 50,
+            'telat'           => 60,
+        ];
+    
+        $rules = [
+            ['sedikit', 'rendah', 'bisa_didahulukan', 'selesai_cepat'],
+            ['banyak', 'rendah', 'bisa_didahulukan', 'selesai_cepat'],
+            ['sedang', 'sedang', 'normal', 'sesuai_deadline'],
+            ['sedikit', 'tinggi', 'penting', 'telat'],
+            ['sedikit', 'tinggi', 'super_penting', 'telat'],
+            ['banyak', 'tinggi', 'super_penting', 'telat'],
+            ['banyak', 'rendah', 'super_penting', 'telat'],
+            ['sedikit', 'tinggi', 'bisa_didahulukan', 'sesuai_deadline'],
+            ['sedang', 'tinggi', 'normal', 'telat'],
+            ['banyak', 'tinggi', 'normal', 'sesuai_deadline'],
+            ['sedang', 'tinggi', 'penting', 'telat'],
+            ['banyak', 'tinggi', 'penting', 'telat']
+        ];
+    
+        $zSum = 0;
+        $alphaSum = 0;
+    
+        foreach ($rules as $rule) {
+            [$e, $w, $p, $outLabel] = $rule;
+            
+            $alpha = min(
+                $employeeMembership[$e] ?? 0,
+                $workingHoursMembership[$w] ?? 0,
+                $priorityMembership[$p] ?? 0
+            );
+    
+            if ($alpha > 0) {
+                $z = $zMapping[$outLabel];
+                $zSum += $alpha * $z;
+                $alphaSum += $alpha;
+            }
+        }
+    
+        if ($alphaSum == 0) {
+            return $this->getDefaultProcessingTime($employeeMembership, $workingHoursMembership, $priorityMembership);
+        }
+        
+        return $zSum / $alphaSum;
+    }
+
+    public function show(Project $project)
+    {
+        $project->load('division'); // Eager load the division relationship
+        return view('projects.show', compact('project'));
+    }
+
+    public function edit(Project $project)
+    {
+        $divisions = Division::all();
+        return view('projects.edit', compact('project', 'divisions'));
     }
 
     public function destroy(Project $project)
@@ -236,15 +322,19 @@ class ProjectController extends Controller
     // Tambah method baru
     private function getDefaultProcessingTime($emp, $hours, $priority) 
     {
+        // Perbaikan logika default
+        if ($hours['tinggi'] > 0) {
+            if ($priority['super_penting'] > 0 || $priority['penting'] > 0) {
+                return 55;
+            }
+            return 50;
+        }
         if ($priority['super_penting'] > 0) {
             return 60;
-        }
-        if ($hours['tinggi'] > 0) {
-            return 55;
         }
         if ($emp['banyak'] > 0 && $hours['rendah'] > 0) {
             return 40;
         }
-        return 50;
+        return 45; // Default value yang lebih masuk akal
     }
 }
