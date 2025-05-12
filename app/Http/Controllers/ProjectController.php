@@ -58,9 +58,9 @@ class ProjectController extends Controller
                     ];
     
                     $workingHoursMembership = [
-                        'rendah' => $this->calculateMembership($project->working_hours, 5, 15, 25),
-                        'sedang' => $this->calculateMembership($project->working_hours, 20, 30, 40),
-                        'tinggi' => $this->calculateMembership($project->working_hours, 35, 45, 56)  // Pastikan menggunakan 'tinggi'
+                        'rendah' => $this->calculateMembership($project->working_hours, 5, 20, 35),
+                        'sedang' => $this->calculateMembership($project->working_hours, 30, 40, 50),
+                        'tinggi' => $this->calculateMembership($project->working_hours, 45, 50, 56)
                     ];
     
                     $priorityMembership = [
@@ -84,12 +84,14 @@ class ProjectController extends Controller
                         ['sedikit', 'tinggi', 'super_penting', 'telat'],
                         ['banyak', 'tinggi', 'super_penting', 'telat'],
                         ['banyak', 'rendah', 'super_penting', 'telat'],
-                        // Tambahan rules untuk mencakup kasus working hours tinggi
                         ['sedikit', 'tinggi', 'bisa_didahulukan', 'sesuai_deadline'],
                         ['sedang', 'tinggi', 'normal', 'telat'],
                         ['banyak', 'tinggi', 'normal', 'sesuai_deadline'],
                         ['sedang', 'tinggi', 'penting', 'telat'],
-                        ['banyak', 'tinggi', 'penting', 'telat']
+                        ['banyak', 'tinggi', 'penting', 'telat'],
+                        // Tambahan rules untuk working hours tinggi
+                        ['banyak', 'tinggi', 'bisa_didahulukan', 'telat'],
+                        ['banyak', 'tinggi', 'super_penting', 'telat']
                     ];
     
                     foreach ($rules as $rule) {
@@ -157,6 +159,9 @@ class ProjectController extends Controller
 
     private function calculateMembership($x, $a, $b, $c)
     {
+        // Khusus untuk working hours maksimum
+        if ($x == 56 && $c == 56) return 1;
+        
         if ($x < $a || $x > $c) return 0;
         if ($x == $b) return 1;
         if ($x < $b) return ($x - $a) / ($b - $a);

@@ -141,11 +141,16 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Team Size</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Processing Time (Hours)</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Priority</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Deadline</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                                <div class="flex items-center cursor-pointer" onclick="sortTable()">
+                                                    Deadline
+                                                    <span id="sort-icon" class="ml-1">↕️</span>
+                                                </div>
+                                            </th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody id="projectTableBody" class="bg-white divide-y divide-gray-200 dark:divide-gray-700">
                                         @foreach($projects ?? [] as $project)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ $project->name }}</td>
@@ -164,7 +169,6 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ $project->deadline->format('Y-m-d') }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <a href="{{ route('projects.show', $project) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">View</a>
                                                 <a href="{{ route('projects.edit', $project) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Edit</a>
                                                 <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline">
                                                     @csrf
@@ -274,4 +278,32 @@
             });
         });
     </script>
+@endpush
+
+@push('scripts')
+<script>
+    let sortDirection = 'asc';
+    
+    function sortTable() {
+        const tbody = document.getElementById('projectTableBody');
+        const rows = Array.from(tbody.getElementsByTagName('tr'));
+        const icon = document.getElementById('sort-icon');
+        
+        rows.sort((a, b) => {
+            const dateA = new Date(a.cells[6].textContent.trim());
+            const dateB = new Date(b.cells[6].textContent.trim());
+            
+            if (sortDirection === 'asc') {
+                icon.textContent = '↓';
+                return dateA - dateB;
+            } else {
+                icon.textContent = '↑';
+                return dateB - dateA;
+            }
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+</script>
 @endpush

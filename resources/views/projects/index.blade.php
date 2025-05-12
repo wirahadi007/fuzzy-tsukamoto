@@ -16,14 +16,30 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center cursor-pointer" onclick="sortTable(0, 'text')">
+                                        Name <span class="sort-icon ml-1">↕️</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center cursor-pointer" onclick="sortTable(1, 'text')">
+                                        Client <span class="sort-icon ml-1">↕️</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center cursor-pointer" onclick="sortTable(2, 'text')">
+                                        Division <span class="sort-icon ml-1">↕️</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center cursor-pointer" onclick="sortTable(3, 'date')">
+                                        Deadline <span class="sort-icon ml-1">↕️</span>
+                                    </div>
+                                </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody id="projectTableBody" class="bg-white divide-y divide-gray-200">
                             @foreach($projects as $project)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ $project->name }}</td>
@@ -47,4 +63,61 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    let sortStates = {
+        0: 'none', // Name
+        1: 'none', // Client
+        2: 'none', // Division
+        3: 'none'  // Deadline
+    };
+
+    function sortTable(columnIndex, type) {
+        const tbody = document.getElementById('projectTableBody');
+        const rows = Array.from(tbody.getElementsByTagName('tr'));
+        const icons = document.getElementsByClassName('sort-icon');
+        
+        // Reset other column icons
+        Array.from(icons).forEach((icon, index) => {
+            if (index !== columnIndex) {
+                icon.textContent = '↕️';
+            }
+        });
+
+        // Update sort state
+        if (sortStates[columnIndex] === 'none' || sortStates[columnIndex] === 'desc') {
+            sortStates[columnIndex] = 'asc';
+            icons[columnIndex].textContent = '↑';
+        } else {
+            sortStates[columnIndex] = 'desc';
+            icons[columnIndex].textContent = '↓';
+        }
+
+        rows.sort((a, b) => {
+            let valueA = a.cells[columnIndex].textContent.trim();
+            let valueB = b.cells[columnIndex].textContent.trim();
+
+            if (type === 'date') {
+                valueA = new Date(valueA);
+                valueB = new Date(valueB);
+            }
+
+            if (sortStates[columnIndex] === 'asc') {
+                if (type === 'text') {
+                    return valueA.localeCompare(valueB);
+                }
+                return valueA - valueB;
+            } else {
+                if (type === 'text') {
+                    return valueB.localeCompare(valueA);
+                }
+                return valueB - valueA;
+            }
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+</script>
+@endpush
 @endsection
