@@ -25,7 +25,7 @@
                                     <td class="px-6 py-4">{{ $project->employee_count }}</td>
                                     <td class="px-6 py-4">{{ $project->working_hours }}</td>
                                     <td class="px-6 py-4">{{ $project->priority_scale }}</td>
-                                    <td class="px-6 py-4">{{ $project->processing_time }}</td>
+                                    <td class="px-6 py-4">{{ $results[$key]['scores']['processing_time'] }}</td>
                                     <td class="px-6 py-4">
                                         @if(isset($results[$key]))
                                             <button onclick="toggleFuzzyAnalysis({{ $project->id }})" 

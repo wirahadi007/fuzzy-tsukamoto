@@ -256,9 +256,10 @@
                     datasets: [{
                         label: 'Jumlah Project',
                         data: [
-                            {{ $projects->filter(function($p) { return $p->calculated_processing_time > 50; })->count() }},
-                            {{ $projects->filter(function($p) { return $p->calculated_processing_time > 40 && $p->calculated_processing_time <= 50; })->count() }},
-                            {{ $projects->filter(function($p) { return $p->calculated_processing_time <= 40; })->count() }}
+                            {{ $projects->where('priority_scale', 1)->count() }},
+                            {{ $projects->where('priority_scale', 2)->count() }},
+                            {{ $projects->where('priority_scale', 3)->count() }},
+                            {{ $projects->where('priority_scale', 4)->count() }}
                         ],
                         backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#B91C1C']
                     }]
