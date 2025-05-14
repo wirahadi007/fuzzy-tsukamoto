@@ -14,13 +14,17 @@
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <div class="flex items-center flex-shrink-0">
-                            <h1 class="text-xl font-bold">SPK Overtime</h1>
-                        </div>
+                            <img src="{{ asset('images/pilar-kreatif.jpeg') }}" alt="SPK Overtime Logo" class="h-8 w-auto">                        </div>
                         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                             <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
                                 Dashboard
                             </a>
-                            @if(auth()->user()->hasRole('admin'))
+                            @if(auth()->user()->role === 'manager')
+                                <a href="{{ route('projects.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+                                    Projects
+                                </a>
+                            @endif
+                            @if(auth()->user()->role === 'admin')
                                 <a href="{{ route('projects.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900">
                                     Projects
                                 </a>
@@ -62,7 +66,6 @@
             </div>
         </main>
     </div>
-    <!-- Di bagian bawah sebelum closing body tag -->
     @stack('scripts')
 </body>
 </html>
