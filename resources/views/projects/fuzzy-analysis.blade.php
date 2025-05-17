@@ -11,11 +11,11 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr>
-                                    <th class="px-6 py-3 bg-gray-50 text-left">Project Name</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left">Employee Count</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left">Working Hours</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left">Priority Scale</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left">Processing Time</th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(0)">Project Name <span id="sort-0" class="sort-indicator"></span></th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(1)">Employee Count <span id="sort-1" class="sort-indicator"></span></th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(2)">Working Hours <span id="sort-2" class="sort-indicator"></span></th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(3)">Priority Scale <span id="sort-3" class="sort-indicator"></span></th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(4)">Processing Time <span id="sort-4" class="sort-indicator"></span></th>
                                     <th class="px-6 py-3 bg-gray-50 text-left">Actions</th>
                                 </tr>
                             </thead>
@@ -109,12 +109,83 @@
 </div>
 
 @push('scripts')
+<style>
+    .sort-indicator::after {
+        content: '⇅';
+        margin-left: 5px;
+        opacity: 0.5;
+    }
+    .sort-asc::after {
+        content: '↑';
+        opacity: 1;
+    }
+    .sort-desc::after {
+        content: '↓';
+        opacity: 1;
+    }
+</style>
 <script>
     function toggleFuzzyAnalysis(projectId) {
         const fuzzyRow = document.getElementById(`fuzzy-${projectId}`);
         if (fuzzyRow) {
             fuzzyRow.classList.toggle('hidden');
         }
+    }
+
+    let currentSort = {
+        column: -1,
+        asc: true
+    };
+
+    function sortTable(column) {
+        const table = document.querySelector('table');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr:not([id^="fuzzy-"])'));
+        
+        // Reset all sort indicators
+        document.querySelectorAll('.sort-indicator').forEach(indicator => {
+            indicator.className = 'sort-indicator';
+        });
+
+        // Update sort direction
+        if (currentSort.column === column) {
+            currentSort.asc = !currentSort.asc;
+        } else {
+            currentSort.column = column;
+            currentSort.asc = true;
+        }
+
+        // Update sort indicator
+        const indicator = document.getElementById(`sort-${column}`);
+        indicator.className = `sort-indicator ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
+
+        // Sort rows
+        rows.sort((a, b) => {
+            let aValue = a.cells[column].textContent.trim();
+            let bValue = b.cells[column].textContent.trim();
+
+            // Handle numeric columns
+            if (column === 1 || column === 2 || column === 3 || column === 4) {
+                aValue = parseFloat(aValue) || 0;
+                bValue = parseFloat(bValue) || 0;
+                return currentSort.asc ? aValue - bValue : bValue - aValue;
+            }
+
+            // Handle text columns
+            return currentSort.asc 
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+        });
+
+        // Reorder rows
+        rows.forEach(row => {
+            tbody.appendChild(row);
+            // Move associated fuzzy analysis row if exists
+            const fuzzyRow = document.getElementById(`fuzzy-${row.querySelector('button')?.getAttribute('onclick')?.match(/\d+/)?.[0]}`);
+            if (fuzzyRow) {
+                tbody.appendChild(fuzzyRow);
+            }
+        });
     }
 </script>
 @endpush
