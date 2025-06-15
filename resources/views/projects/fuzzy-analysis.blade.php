@@ -14,7 +14,7 @@
                                     <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(0)">Project Name <span id="sort-0" class="sort-indicator"></span></th>
                                     <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(1)">Employee Count <span id="sort-1" class="sort-indicator"></span></th>
                                     <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(2)">Working Hours <span id="sort-2" class="sort-indicator"></span></th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(3)">Priority Scale <span id="sort-3" class="sort-indicator"></span></th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(3)">Priority Level <span id="sort-3" class="sort-indicator"></span></th>
                                     <th class="px-6 py-3 bg-gray-50 text-left cursor-pointer" onclick="sortTable(4)">Processing Time <span id="sort-4" class="sort-indicator"></span></th>
                                     <th class="px-6 py-3 bg-gray-50 text-left">Actions</th>
                                 </tr>
@@ -61,6 +61,48 @@
                                                             <p>Bisa Didahulukan: {{ number_format($results[$key]['scores']['priority']['bisa_didahulukan'], 2) }}</p>
                                                             <p>Normal: {{ number_format($results[$key]['scores']['priority']['normal'], 2) }}</p>
                                                             <p>Super Penting: {{ number_format($results[$key]['scores']['priority']['super_penting'], 2) }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-4">
+                                                        <h5 class="font-medium mb-2">Rumus Fuzzy</h5>
+                                                        <div class="space-y-2">
+                                                            <p class="font-medium">1. Fuzzifikasi:</p>
+                                                            <p>Employee Count (EC):</p>
+                                                            <ul class="list-disc list-inside pl-4">
+                                                                <p>μSedikit[x] = (3-x)/(3-1) untuk 1 ≤ x ≤ 3</p>
+                                                                <p>μSedang[x] = (x-2)/(3-2) untuk 2 ≤ x ≤ 3</p>
+                                                                <p>μSedang[x] = (4-x)/(4-3) untuk 3 ≤ x ≤ 4</p>
+                                                                <p>μBanyak[x] = (x-3)/(5-3) untuk 3 ≤ x ≤ 5</p>
+                                                            </ul>
+                                                            
+                                                            <p>Working Hours (WH):</p>
+                                                            <ul class="list-disc list-inside pl-4">
+                                                                <p>μRendah[x] = (35-x)/(35-5) untuk 5 ≤ x ≤ 35</p>
+                                                                <p>μSedang[x] = (x-30)/(40-30) untuk 30 ≤ x ≤ 40</p>
+                                                                <p>μSedang[x] = (50-x)/(50-40) untuk 40 ≤ x ≤ 50</p>
+                                                                <p>μTinggi[x] = (x-45)/(56-45) untuk 45 ≤ x ≤ 56</p>
+                                                            </ul>
+
+                                                            <p>Priority Scale (PS):</p>
+                                                            <ul class="list-disc list-inside pl-4">
+                                                                <p>μBisaDidahulukan[x] = (2-x)/(2-0) untuk 0 ≤ x ≤ 2</p>
+                                                                <p>μNormal[x] = (x-1)/(2-1) untuk 1 ≤ x ≤ 2</p>
+                                                                <p>μNormal[x] = (3-x)/(3-2) untuk 2 ≤ x ≤ 3</p>
+                                                                <p>μPenting[x] = (x-2)/(3-2) untuk 2 ≤ x ≤ 3</p>
+                                                                <p>μSuperPenting[x] = (x-3)/(4-3) untuk 3 ≤ x ≤ 4</p>
+                                                            </ul>
+                                                        </div>
+
+                                                        <div class="mt-4">
+                                                            <p class="font-medium">2. Defuzzifikasi (Metode Tsukamoto):</p>
+                                                            <p>Z = Σ(αi * zi) / Σ(αi)</p>
+                                                            <p>Dimana:</p>
+                                                            <ul class="list-disc list-inside pl-4">
+                                                                <p>αi = nilai minimum dari derajat keanggotaan</p>
+                                                                <p>zi = nilai crisp output (40 untuk selesai cepat, 50 untuk sesuai deadline, 60 untuk telat)</p>
+                                                            </ul>
+                                                            <p class="mt-2">Hasil Defuzzifikasi untuk {{ $project->name }}:</p>
+                                                            <p>Z = {{ $results[$key]['scores']['processing_time'] }}</p>
                                                         </div>
                                                     </div>
                                                     <div class="mt-4">

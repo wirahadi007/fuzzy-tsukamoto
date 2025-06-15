@@ -15,12 +15,6 @@
                     </dd>
                 </div>
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-                    <dt class="text-sm font-medium text-gray-500">Priority Level</dt>
-                    <dd class="mt-1 flex text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                        <span class="flex-grow">{{ $project->priority_level }}/5</span>
-                    </dd>
-                </div>
-                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                     <dt class="text-sm font-medium text-gray-500">Difficulty Level</dt>
                     <dd class="mt-1 flex text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                         <span class="flex-grow">{{ $project->difficulty_level }}/5</span>

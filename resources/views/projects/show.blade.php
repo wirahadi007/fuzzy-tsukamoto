@@ -32,12 +32,8 @@
                             <p>{{ $project->working_hours }}</p>
                         </div>
                         <div>
-                            <p class="font-medium">Priority Scale</p>
-                            <p>{{ $project->priority_scale }}</p>
-                        </div>
-                        <div>
                             <p class="font-medium">Priority Level</p>
-                            <p>{{ $project->priority_level }}</p>
+                            <p>{{ $project->priority_scale }}</p>
                         </div>
                         <div>
                             <p class="font-medium">Processing Time</p>

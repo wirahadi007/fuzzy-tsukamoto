@@ -189,7 +189,6 @@ class ProjectController extends Controller
             'employee_count' => 'required|integer|min:1|max:5',
             'working_hours' => 'required|integer|min:5|max:56',
             'priority_scale' => 'required|integer|min:1|max:4',
-            'priority_level' => 'required|integer|min:1|max:4'
         ]);
     
         try {

@@ -51,16 +51,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="priority_scale" class="block text-sm font-medium text-gray-700">Priority Scale (1-4)</label>
+                        <label for="priority_scale" class="block text-sm font-medium text-gray-700">Priority Level (1-4)</label>
                         <input type="number" name="priority_scale" id="priority_scale" min="1" max="4" 
                                value="{{ old('priority_scale', $project->priority_scale) }}" 
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="priority_level" class="block text-sm font-medium text-gray-700">Priority Level (1-4)</label>
-                        <input type="number" name="priority_level" id="priority_level" min="1" max="4" 
-                               value="{{ old('priority_level', $project->priority_level) }}" 
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
 
